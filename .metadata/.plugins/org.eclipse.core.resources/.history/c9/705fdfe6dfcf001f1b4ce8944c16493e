@@ -1,0 +1,60 @@
+package com.te.service;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import com.te.dto.ExternalWeatherResponse;
+import com.te.dto.WeatherResponse;
+
+
+
+@Service
+public class WeatherService {
+
+    @Value("${weather.api.url}")
+    private String weatherApiUrl;
+
+    @Value("${weather.api.key}")
+    private String apiKey;
+
+    private final RestTemplate restTemplate;
+
+    public WeatherService(RestTemplateBuilder restTemplateBuilder) {
+        this.restTemplate = restTemplateBuilder.build();
+    }
+
+    public WeatherResponse getWeather(String city) {
+        String url = String.format("%s?q=%s&appid=%s&units=metric", weatherApiUrl, city, apiKey);
+    	
+//    	String url = UriComponentsBuilder.fromHttpUrl(city)
+
+        ResponseEntity<ExternalWeatherResponse> response = restTemplate.getForEntity(url, ExternalWeatherResponse.class);
+
+        System.out.println("response:"+" "+response);
+        
+        if (response.getStatusCode() == HttpStatus.OK) {
+            ExternalWeatherResponse externalResponse = response.getBody();
+            if (externalResponse != null) {
+                return mapToWeatherResponse(externalResponse);
+            }
+        }
+
+        throw new RuntimeException("Failed to fetch weather data");
+    }
+
+    private WeatherResponse mapToWeatherResponse(ExternalWeatherResponse externalResponse) {
+        return new WeatherResponse(
+            externalResponse.getName(),
+            externalResponse.getMain().getTemp(),
+            externalResponse.getWeather().get(0).getDescription(),
+            externalResponse.getMain().getHumidity(),
+            externalResponse.getDate()
+        );
+    }
+}
+

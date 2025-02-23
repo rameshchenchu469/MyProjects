@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: API-Gateway
+
+  cloud:
+    gateway:
+      routes:
+        - id: doctor-route
+          predicates:
+            - Path=/api/doctor/**
+          uri: lb://doctor-service
+          filters:
+            #- name: AuthenticationFilter  # Assuming it's a custom filter
+
+        - id: patient-route
+          predicates:
+            - Path=/api/patient/**
+          uri: lb://patient-service
+          filters:
+           #- name: AuthenticationFilter # Assuming it's a custom filter
+
+        - id: hospital-route
+          predicates:
+            - Path=/hospital/**
+          uri: lb://hospital-service
+          filters:
+           # - name: AuthenticationFilter # Assuming it's a custom filter
+
+        - id: authentication-route  # Corrected the typo here
+          predicates:
+            - Path=/user/**
+          uri: lb://authentication-service
+
+        - id: appointment-route
+          predicates:
+            - Path=/appointment/**
+          uri: lb://appointment-service
+          filters:
+           #- name: AuthenticationFilter  # Assuming it's a custom filter
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+      
+server:
+  port: 8765
